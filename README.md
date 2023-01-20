@@ -1,9 +1,11 @@
-# FAST API
+# Machine Learning API
+The machine learning API is a simplified version of the Ultralytics Yolov5 Machine Learning project. This tool is meant to serve as a reusable project for data processing and simple configuration. You can even add your own models by dragging them into the weights folder and changing just 1 variable in the process_video.py file. 
 
-This program uses Gdownloader to load Google Drive vidoes and process them for mapbox development. The API is currently in development. 
+## Author
+Alex Canales 
+2023-01-19
 
 ## Installation
-
 Use the package manager [PIP](https://pypi.org/project/pip/) to install the dependencies.
 
 ```bash
@@ -11,16 +13,64 @@ pip install
 ```
 
 ## Starting the Application
-
 To start the application, use [Fast API](https://fastapi.tiangolo.com/tutorial/first-steps/).
 
 ```bash
-uvicorn main_api:app --reload
+uvicorn main:app --reload
+```
+
+## What does the API expect and return
+The API expects a json key value pair:
+```json
+{
+    "video_link": "Whatever your link is"
+}
+```
+You can see more about what the API expects as input in the routes folder.
+
+The API returns a StreamingResponse in mp4 format. Streaming responses return the video in smaller chunks/ packets instead of one large response. 
+You can fetch the processed video and turn it into a usable video source link with the following JAVASCRIPT function:
+```javascript
+async function getVideo(my_video_link) {
+		try {
+			
+			let data = JSON.stringify({
+				video_link: my_video_link
+			});
+
+			let config = {
+				method: 'post',
+				url: 'http://127.0.0.1:8000/dashcam/machinelearning',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: data
+			};
+
+			let response = await fetch(config.url, config);
+			let videoBlob = await response.blob();
+			processed_video_link = URL.createObjectURL(videoBlob);
+		} catch (error) {
+			console.log(error);
+		}
+	}
 ```
 
 
-## Contributing
-Pull requests will not be accepted at this time. 
+## Do I need a GPU?
+The model works for both CPU and GPUs. 
+Note, CPUs are around 5x to 10x slower than GPUs for processing videos. 
 
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
+On a Nvidia 3080 it takes 6 ms per frame or 0.9second to process a 5 second video. 
+
+On a 5800x it takes 30ms per frame or 4.5 second to process a 5 second video. 
+
+## How do I use a GPU?
+To use your GPU, you must have PyTorch & CUDA installed on your computer. As such, your GPU must have cuda cores (Usually anything above 2000 series Nvidia cards)
+
+Use this tutorial if you need help:
+[PyTorch & CUDA Setup - Windows 10](https://www.youtube.com/watch?v=GMSjDTU8Zlc)
+
+## Add your own model
+Add your weights file to the weights folder. Don't for get to change the weights variable in the process_video.py to path of your new weights file. 
+
